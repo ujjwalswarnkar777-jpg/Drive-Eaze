@@ -63,12 +63,8 @@ export function getWhatsAppLink(phone: string, text = ''): string {
   const cleanPhone = phone.replace(/[^\d]/g, '');
   const encodedText = text ? encodeURIComponent(text) : '';
   
-  // Directly point to native app deep link for Android/iOS users
-  if (isMobileUser()) {
-    return `whatsapp://send?phone=${cleanPhone}${encodedText ? `&text=${encodedText}` : ''}`;
-  }
-  
-  // Standard web interface backup for desktop users
+  // Universal official HTTPS link that flawlessly triggers the native WhatsApp app on Android/iOS
+  // and falls back gracefully to WhatsApp Web on Desktop. This avoids browser blocks on direct isMobileUser custom URI schemes (whatsapp://).
   return `https://wa.me/${cleanPhone}${encodedText ? `?text=${encodedText}` : ''}`;
 }
 
