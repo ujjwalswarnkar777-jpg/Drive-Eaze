@@ -57,6 +57,11 @@ export default function Footer() {
                   Browse Our Fleet <ArrowUpRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity text-[#f97316]" />
                 </Link>
               </li>
+              <li>
+                <Link to="/admin" className="hover:text-white transition-colors flex items-center gap-1 group">
+                  Staff Portal <ArrowUpRight size={12} className="opacity-0 group-hover:opacity-100 transition-opacity text-[#f97316]" />
+                </Link>
+              </li>
             </ul>
           </div>
 
