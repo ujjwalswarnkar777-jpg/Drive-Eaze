@@ -13,7 +13,7 @@ import { db, subscribeToRealtime } from '../lib/supabase';
 import { Car, Review } from '../types';
 import { DetailedCarSkeleton } from '../components/Skeleton';
 import { toast } from '../components/Toast';
-import { getWhatsAppLink, getPhoneLink } from '../lib/deepLink';
+import { getWhatsAppLink, getPhoneLink, isMobileUser } from '../lib/deepLink';
 
 export default function CarDetail() {
   const { id } = useParams<{ id: string }>();
@@ -444,8 +444,8 @@ export default function CarDetail() {
                 <div className="grid grid-cols-2 gap-3">
                   <a
                     href={waPreloadedLink}
-                    target="_blank"
-                    rel="noreferrer"
+                    target={isMobileUser() ? undefined : "_blank"}
+                    rel={isMobileUser() ? undefined : "noreferrer"}
                     className="py-3 bg-[#111] hover:bg-[#202020] border border-[#262626] rounded text-white text-xs font-mono font-bold flex items-center justify-center gap-1.5"
                     title="Send prefilled message"
                   >

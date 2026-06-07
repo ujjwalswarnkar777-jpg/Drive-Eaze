@@ -63,9 +63,24 @@ export function getWhatsAppLink(phone: string, text = ''): string {
   const cleanPhone = phone.replace(/[^\d]/g, '');
   const encodedText = text ? encodeURIComponent(text) : '';
   
-  // Universal official HTTPS link that flawlessly triggers the native WhatsApp app on Android/iOS
-  // and falls back gracefully to WhatsApp Web on Desktop. This avoids browser blocks on direct isMobileUser custom URI schemes (whatsapp://).
-  return `https://wa.me/${cleanPhone}${encodedText ? `?text=${encodedText}` : ''}`;
+  if (isAndroidUser()) {
+    // Official Android Chrome Intent schema to launch the official WhatsApp Android app directly.
+    // This completely bypasses intermediate wa.me web redirect loops in secure/sandboxed environments.
+    return `intent://send/?phone=${cleanPhone}${encodedText ? `&text=${encodedText}` : ''}#Intent;scheme=whatsapp;package=com.whatsapp;S.browser_fallback_url=${encodeURIComponent(`https://wa.me/${cleanPhone}${encodedText ? `?text=${encodedText}` : ''}`)};end`;
+  }
+  
+  if (isIOSUser()) {
+    // Direct custom URI scheme for iOS to trigger native WhatsApp app directly
+    return `whatsapp://send?phone=${cleanPhone}${encodedText ? `&text=${encodedText}` : ''}`;
+  }
+
+  if (isMobileUser()) {
+    // Catch-all fallback for other touchscreen/mobile browsers
+    return `whatsapp://send?phone=${cleanPhone}${encodedText ? `&text=${encodedText}` : ''}`;
+  }
+  
+  // Standard web interface backup for desktop users
+  return `https://web.whatsapp.com/send?phone=${cleanPhone}${encodedText ? `&text=${encodedText}` : ''}`;
 }
 
 /**

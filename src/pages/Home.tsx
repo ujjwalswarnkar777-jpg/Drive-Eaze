@@ -14,7 +14,7 @@ import { db, subscribeToRealtime } from '../lib/supabase';
 import { Car, Review } from '../types';
 import { CarCardSkeleton } from '../components/Skeleton';
 import { toast } from '../components/Toast';
-import { getWhatsAppLink, getGoogleMapsLink, getPhoneLink, getAppLink } from '../lib/deepLink';
+import { getWhatsAppLink, getGoogleMapsLink, getPhoneLink, getAppLink, isMobileUser } from '../lib/deepLink';
 
 export default function Home() {
   const [settings, setSettings] = useState<Record<string, string>>({});
@@ -200,8 +200,8 @@ export default function Home() {
             
             <a 
               href={waLink} 
-              target="_blank" 
-              rel="noopener noreferrer" 
+              target={isMobileUser() ? undefined : "_blank"} 
+              rel={isMobileUser() ? undefined : "noopener noreferrer"} 
               className="w-full sm:w-auto px-8 py-4 bg-[#161616] hover:bg-[#262626] border border-[#262626] hover:border-[#f97316]/30 text-white font-display font-bold rounded-lg transition-all active:scale-95 text-center flex items-center justify-center gap-2"
               id="hero-cta-whatsapp"
             >
@@ -277,8 +277,8 @@ export default function Home() {
               <p className="text-[#a3a3a3] font-medium text-lg mb-6">No cars are currently flagged as available. We have more on the lot!</p>
               <a 
                 href={waLink} 
-                target="_blank" 
-                rel="noopener noreferrer"
+                target={isMobileUser() ? undefined : "_blank"} 
+                rel={isMobileUser() ? undefined : "noopener noreferrer"}
                 className="px-6 py-3 bg-[#f97316] hover:bg-orange-600 font-bold text-black rounded text-sm transition-all"
               >
                 WhatsApp staff for custom options
@@ -916,8 +916,8 @@ export default function Home() {
               <div className="pt-8">
                 <a 
                   href={waLink} 
-                  target="_blank" 
-                  rel="noopener noreferrer" 
+                  target={isMobileUser() ? undefined : "_blank"} 
+                  rel={isMobileUser() ? undefined : "noopener noreferrer"} 
                   className="px-8 py-4 bg-[#f97316] hover:bg-orange-600 font-display font-bold text-black rounded-lg transition-all active:scale-95 inline-block text-center cursor-pointer"
                 >
                   Become a Host (WhatsApp Team)
@@ -1010,8 +1010,8 @@ export default function Home() {
             
             <a 
               href={waLink} 
-              target="_blank" 
-              rel="noopener noreferrer" 
+              target={isMobileUser() ? undefined : "_blank"} 
+              rel={isMobileUser() ? undefined : "noopener noreferrer"} 
               className="w-full sm:flex-1 px-6 py-4 bg-emerald-600 hover:bg-emerald-700 font-display font-bold text-white rounded-lg transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-emerald-950/20"
             >
               <MessageSquare size={18} /> Chat on WhatsApp

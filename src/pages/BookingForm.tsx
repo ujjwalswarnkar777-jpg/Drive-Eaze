@@ -9,7 +9,7 @@ import { db } from '../lib/supabase';
 import { Car, Booking } from '../types';
 import { ArrowLeft, Calculator, KeyRound, MessageSquare, ShieldAlert, Sparkles, CheckCircle2, Calendar, Clock } from 'lucide-react';
 import { toast } from '../components/Toast';
-import { getWhatsAppLink as getWhatsAppAppFallback } from '../lib/deepLink';
+import { getWhatsAppLink as getWhatsAppAppFallback, isMobileUser } from '../lib/deepLink';
 import DateTimePicker from '../components/DateTimePicker';
 
 export default function BookingForm() {
@@ -265,8 +265,8 @@ export default function BookingForm() {
             <div className="space-y-3 pt-4">
               <a 
                 href={getWhatsAppLink()} 
-                target="_blank"  
-                rel="noreferrer"
+                target={isMobileUser() ? undefined : "_blank"}  
+                rel={isMobileUser() ? undefined : "noreferrer"}
                 className="w-full sm:w-auto px-8 py-3.5 bg-[#f97316] hover:bg-orange-600 font-display font-black text-black rounded-lg transition-all active:scale-95 text-center flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-orange-500/10"
               >
                 <MessageSquare size={18} /> Confirm booking on WhatsApp

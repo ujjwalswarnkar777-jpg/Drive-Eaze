@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, ArrowUpRight, MessageSquare } from 'lucide-react';
 import { db } from '../lib/supabase';
-import { getWhatsAppLink, getPhoneLink } from '../lib/deepLink';
+import { getWhatsAppLink, getPhoneLink, isMobileUser } from '../lib/deepLink';
 
 export default function Footer() {
   const [settings, setSettings] = useState<Record<string, string>>({});
@@ -99,7 +99,14 @@ export default function Footer() {
               </p>
               <p className="flex items-center gap-2">
                 <MessageSquare size={14} className="text-[#f97316] shrink-0" />
-                <a href={getWhatsAppLink(whatsappCode, 'Hello Drive-Eaze! I am contacting you from the footer link on your mobile platform.')} className="hover:text-white transition-colors">WhatsApp Direct</a>
+                <a 
+                  href={getWhatsAppLink(whatsappCode, 'Hello Drive-Eaze! I am contacting you from the footer link on your mobile platform.')} 
+                  target={isMobileUser() ? undefined : "_blank"}
+                  rel={isMobileUser() ? undefined : "noopener noreferrer"}
+                  className="hover:text-white transition-colors"
+                >
+                  WhatsApp Direct
+                </a>
               </p>
             </div>
           </div>
