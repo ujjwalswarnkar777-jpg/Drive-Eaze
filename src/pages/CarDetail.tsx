@@ -444,8 +444,8 @@ export default function CarDetail() {
                 <div className="grid grid-cols-2 gap-3">
                   <a
                     href={waPreloadedLink}
-                    target={isMobileUser() ? undefined : "_blank"}
-                    rel={isMobileUser() ? undefined : "noreferrer"}
+                    target="_blank"
+                    rel="noreferrer"
                     className="py-3 bg-[#111] hover:bg-[#202020] border border-[#262626] rounded text-white text-xs font-mono font-bold flex items-center justify-center gap-1.5"
                     title="Send prefilled message"
                   >

@@ -101,8 +101,8 @@ export default function Footer() {
                 <MessageSquare size={14} className="text-[#f97316] shrink-0" />
                 <a 
                   href={getWhatsAppLink(whatsappCode, 'Hello Drive-Eaze! I am contacting you from the footer link on your mobile platform.')} 
-                  target={isMobileUser() ? undefined : "_blank"}
-                  rel={isMobileUser() ? undefined : "noopener noreferrer"}
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="hover:text-white transition-colors"
                 >
                   WhatsApp Direct

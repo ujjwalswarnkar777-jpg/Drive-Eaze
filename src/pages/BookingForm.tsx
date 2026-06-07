@@ -265,8 +265,8 @@ export default function BookingForm() {
             <div className="space-y-3 pt-4">
               <a 
                 href={getWhatsAppLink()} 
-                target={isMobileUser() ? undefined : "_blank"}  
-                rel={isMobileUser() ? undefined : "noreferrer"}
+                target="_blank"  
+                rel="noreferrer"
                 className="w-full sm:w-auto px-8 py-3.5 bg-[#f97316] hover:bg-orange-600 font-display font-black text-black rounded-lg transition-all active:scale-95 text-center flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-orange-500/10"
               >
                 <MessageSquare size={18} /> Confirm booking on WhatsApp
