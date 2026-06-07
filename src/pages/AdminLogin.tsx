@@ -11,8 +11,8 @@ import { KeyRound, ShieldAlert, Sparkles, User, Info } from 'lucide-react';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
-  const [email, setEmail] = useState('Admin@driveeaze.in');
-  const [password, setPassword] = useState('Admin@5678956789');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [logging, setLogging] = useState(false);
 
   useEffect(() => {
@@ -66,17 +66,6 @@ export default function AdminLogin() {
           <p className="text-xs text-[#737373] max-w-xs mx-auto">Access Lucknow fleet listings, active rental bookings, and review approval queues.</p>
         </div>
 
-        {/* Admin Credentials Hint */}
-        <div className="bg-amber-950/20 border border-amber-500/20 p-3.5 rounded-lg flex gap-2.5 text-xs text-amber-500 text-left font-sans" id="login-demo-tip">
-          <Info size={16} className="shrink-0 mt-0.5" />
-          <div>
-            <span className="font-bold uppercase block text-[10px] mb-0.5">Administrator Credentials</span>
-            <p className="text-[11px] leading-tight text-amber-500/85">
-              Email: <span className="font-mono text-white underline select-all">Admin@driveeaze.in</span> <br />
-              Password: <span className="font-mono text-white underline select-all">Admin@5678956789</span>
-            </p>
-          </div>
-        </div>
 
         <form onSubmit={handleLogin} className="space-y-4" id="admin-login-form">
           {/* Email input */}
