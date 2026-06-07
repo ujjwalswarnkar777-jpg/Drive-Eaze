@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom';
 import { Mail, Phone, MapPin, ArrowUpRight, MessageSquare } from 'lucide-react';
 import { db } from '../lib/supabase';
 import { getWhatsAppLink, getPhoneLink, isMobileUser } from '../lib/deepLink';
+import Logo from './Logo';
 
 export default function Footer() {
   const [settings, setSettings] = useState<Record<string, string>>({});
@@ -26,19 +27,17 @@ export default function Footer() {
   const address = settings.address || 'Shop K 02, Kisan Bazar, Vibhuti Khand, Lucknow, Uttar Pradesh 226010';
 
   return (
-    <footer className="bg-[#0c0c0c] border-t border-[#262626] text-[#737373] text-sm" id="main-footer">
+    <footer className="bg-[#04080a] border-t border-[#132125] text-[#737373] text-sm" id="main-footer">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-12">
           
           {/* Brand Col */}
           <div className="space-y-4 md:col-span-1.5" id="footer-col-brand">
-            <span className="font-display text-2xl font-black text-white tracking-tighter">
-              <span className="text-[#f97316]">D</span>RIVE<span className="text-[#f97316]">-</span>EAZE
-            </span>
+            <Logo size={42} variant="inline" />
             <p className="text-xs text-[#737373] mt-2 max-w-sm">
               Premium self-drive vehicle rentals based in Lucknow. Clean luxury, rigid maintenance, and zero hassle booking. Est. 2024.
             </p>
-            <div className="pt-2 font-mono text-[10px] text-[#f97316]" id="footer-est">
+            <div className="pt-2 font-mono text-[10px] text-[#00dfc1]" id="footer-est">
               [01] / Lucknow / Lucknow No. 1 Rental
             </div>
           </div>

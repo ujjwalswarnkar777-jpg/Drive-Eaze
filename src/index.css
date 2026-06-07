@@ -6,13 +6,13 @@
   --font-display: "Space Grotesk", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
   
-  --color-brand-bg: #080808;
-  --color-brand-card: #121212;
-  --color-brand-orange: #dfb15b; /* Champagne Warm Premium Gold */
-  --color-brand-amber: #cca43b;  /* Luxurious Deep Amber-Gold */
-  --color-brand-border: #1d1d1d; /* Elegant thin borders */
+  --color-brand-bg: #070c0e; /* Obsidian-Teal luxury backdrop */
+  --color-brand-card: #0c1518; /* Rich cyber-teal dark card */
+  --color-brand-orange: #00dfc1; /* Electric brand cyan-teal */
+  --color-brand-amber: #008b81;  /* High-end deep metallic teal */
+  --color-brand-border: #132125; /* Stealth cyber-teal container borders */
   --color-brand-text: #f9f9f9;
-  --color-brand-muted: #888888;
+  --color-brand-muted: #8da4a8;
 
   --radius-lg: 1.125rem;
   --radius-xl: 1.625rem;
@@ -23,13 +23,100 @@
 /* Custom premium layouts and sleek animations */
 body {
   font-family: var(--font-sans);
-  background-color: #080808; /* Luxury obsidian */
+  background-color: #070c0e; /* Luxury obsidian with dark blue/teal reflection */
   color: var(--color-brand-text);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, h5, h6, .font-display {
+/* Glowing and color changing effect for ALL headings */
+@keyframes headingGlow {
+  0% {
+    color: #ffffff;
+    text-shadow: 0 0 8px rgba(0, 223, 193, 0.35), 0 0 15px rgba(0, 223, 193, 0.15);
+  }
+  33% {
+    color: #e0fbf7;
+    text-shadow: 0 0 18px rgba(0, 223, 193, 0.7), 0 0 30px rgba(0, 223, 193, 0.35), 0 0 4px rgba(255, 255, 255, 0.6);
+  }
+  66% {
+    color: #00dfc1;
+    text-shadow: 0 0 12px rgba(0, 139, 129, 0.5), 0 0 25px rgba(0, 139, 129, 0.25);
+  }
+  100% {
+    color: #ffffff;
+    text-shadow: 0 0 8px rgba(0, 223, 193, 0.35), 0 0 15px rgba(0, 223, 193, 0.15);
+  }
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+  animation: headingGlow 5s ease-in-out infinite;
+}
+
+/* 3D Animated text with premium 3D perspective shadow offsets */
+@keyframes text3DSpin {
+  0% {
+    transform: perspective(400px) rotateX(0deg) rotateY(0deg);
+    text-shadow: 
+      0 1px 0 #008b81,
+      0 2px 0 #00776e,
+      0 3px 0 #00635c,
+      0 4px 0 #004f4a,
+      0 5px 6px rgba(0, 223, 193, 0.4),
+      0 8px 10px rgba(0, 0, 0, 0.6);
+  }
+  25% {
+    transform: perspective(400px) rotateX(5deg) rotateY(10deg);
+    text-shadow: 
+      -1px 1px 0 #008b81,
+      -2px 2px 0 #00776e,
+      -3px 3px 0 #00635c,
+      -4px 4px 0 #004f4a,
+      -6px 6px 10px rgba(0, 223, 193, 0.5),
+      -10px 10px 15px rgba(0, 0, 0, 0.6);
+  }
+  50% {
+    transform: perspective(400px) rotateX(-3deg) rotateY(-6deg);
+    text-shadow: 
+      1px 1px 0 #008b81,
+      2px 2px 0 #00776e,
+      3px 3px 0 #00635c,
+      4px 4px 0 #004f4a,
+      5px 5px 8px rgba(0, 223, 193, 0.45),
+      8px 8px 12px rgba(0, 0, 0, 0.6);
+  }
+  75% {
+    transform: perspective(400px) rotateX(-6deg) rotateY(8deg);
+    text-shadow: 
+      -1px -1px 0 #008b81,
+      -2px -2px 0 #00776e,
+      -3px -3px 0 #00635c,
+      -4px -4px 0 #004f4a,
+      -5px -5px 6px rgba(0, 223, 193, 0.4),
+      -8px -8px 10px rgba(0, 0, 0, 0.6);
+  }
+  100% {
+    transform: perspective(400px) rotateX(0deg) rotateY(0deg);
+    text-shadow: 
+      0 1px 0 #008b81,
+      0 2px 0 #00776e,
+      0 3px 0 #00635c,
+      0 4px 0 #004f4a,
+      0 5px 6px rgba(0, 223, 193, 0.4),
+      0 8px 10px rgba(0, 0, 0, 0.6);
+  }
+}
+
+.logo-text-3d {
+  display: inline-block;
+  transform-style: preserve-3d;
+  animation: text3DSpin 6s ease-in-out infinite;
+  backface-visibility: hidden;
+}
+
+.font-display {
   font-family: var(--font-display);
   letter-spacing: -0.02em;
 }
@@ -63,96 +150,96 @@ h1, h2, h3, h4, h5, h6, .font-display {
   height: 6px;
 }
 ::-webkit-scrollbar-track {
-  background: #080808;
+  background: #070c0e;
 }
 ::-webkit-scrollbar-thumb {
-  background: #222222;
+  background: #132125;
   border-radius: 3px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #dfb15b;
+  background: #00dfc1;
 }
 
 /* ──────────────────────────────────────────────────────────────────────── */
-/* ELEGANT DARK GOLD PALETTE OVERRIDES FOR CHROMATIC REFINEMENT              */
+/* ELEGANT CYBER TEAL PALETTE OVERRIDES FOR CHROMATIC REFINEMENT            */
 /* ──────────────────────────────────────────────────────────────────────── */
 
 /* Overrides raw Tailwind colors for brand-orange or brand-amber targets */
 .bg-\[\#f97316\] {
-  background-color: #dfb15b !important;
+  background-color: #00dfc1 !important;
 }
 .hover\:bg-orange-600:hover {
-  background-color: #cca43b !important;
+  background-color: #00bfa5 !important;
 }
 .active\:bg-orange-700:active {
-  background-color: #a8822c !important;
+  background-color: #008b81 !important;
 }
 
 .text-\[\#f97316\] {
-  color: #dfb15b !important;
+  color: #00dfc1 !important;
 }
 .hover\:text-\[\#f97316\]:hover {
-  color: #dfb15b !important;
+  color: #00dfc1 !important;
 }
 .hover\:text-white:hover {
   color: #ffffff !important;
 }
 
 .border-\[\#f97316\] {
-  border-color: #dfb15b !important;
+  border-color: #00dfc1 !important;
 }
 .border-\[\#f97316\]\/30 {
-  border-color: rgba(223, 177, 91, 0.25) !important;
+  border-color: rgba(0, 223, 193, 0.25) !important;
 }
 .hover\:border-\[\#f97316\]\/30:hover {
-  border-color: rgba(223, 177, 91, 0.45) !important;
+  border-color: rgba(0, 223, 193, 0.45) !important;
 }
 .focus\:border-\[\#f97316\]:focus {
-  border-color: #dfb15b !important;
-  box-shadow: 0 0 0 1px rgba(223, 177, 91, 0.2) !important;
+  border-color: #00dfc1 !important;
+  box-shadow: 0 0 0 1px rgba(0, 223, 193, 0.25) !important;
 }
 
 /* Backgrounds & borders for cards, blocks to make them deeper and more elegant */
 .bg-\[\#161616\] {
-  background-color: #121212 !important;
+  background-color: #0c1518 !important;
 }
 .border-\[\#262626\] {
-  border-color: #1a1a1a !important;
+  border-color: #132125 !important;
 }
 .bg-\[\#0d0d0d\] {
-  background-color: #080808 !important;
+  background-color: #070c0e !important;
 }
 .bg-\[\#0c0c0c\] {
-  background-color: #060606 !important;
+  background-color: #04080a !important;
 }
 .border-\[\#2d2d2d\] {
-  border-color: #222222 !important;
+  border-color: #1a2c31 !important;
 }
 
-/* Gradients standard maps to luxurious warm gold and brassy hues */
+/* Gradients standard maps to electric teal/cyan shades */
 .from-\[\#f97316\] {
-  --tw-gradient-from: #dfb15b !important;
-  --tw-gradient-to: #cca43b !important;
+  --tw-gradient-from: #00dfc1 !important;
+  --tw-gradient-to: #008b81 !important;
   --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
 }
 .to-\[\#facc15\] {
-  --tw-gradient-to: #cca43b !important;
+  --tw-gradient-to: #008b81 !important;
 }
 
 /* Enhanced luxury shadows & focus styles */
 .shadow-orange-500\/10 {
-  box-shadow: 0 10px 30px -10px rgba(223, 177, 91, 0.15) !important;
+  box-shadow: 0 10px 30px -10px rgba(0, 223, 193, 0.2) !important;
 }
 .shadow-lg {
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.7) !important;
 }
 
 .text-amber-500 {
-  color: #cca43b !important;
+  color: #00dfc1 !important;
 }
 .border-amber-500\/20 {
-  border-color: rgba(204, 164, 59, 0.2) !important;
+  border-color: rgba(0, 223, 193, 0.25) !important;
 }
 .bg-amber-950\/20 {
-  background-color: rgba(34, 26, 15, 0.15) !important;
+  background-color: rgba(0, 223, 193, 0.08) !important;
 }

@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import ToastContainer from './components/Toast';
+import TharIntro from './components/TharIntro';
 
 // Pages
 import Home from './pages/Home';
@@ -27,10 +28,25 @@ function ScrollToTop() {
 }
 
 export default function App() {
+  const [showIntro, setShowIntro] = useState(false);
+
+  useEffect(() => {
+    // Check if the intro has run during this session
+    const hasPlayed = sessionStorage.getItem('drive_eaze_intro_played');
+    if (!hasPlayed) {
+      setShowIntro(true);
+    }
+  }, []);
+
+  const handleIntroComplete = () => {
+    sessionStorage.setItem('drive_eaze_intro_played', 'true');
+    setShowIntro(false);
+  };
+
   // Client Side Layout wrapper (Navbar + Footer)
   function ClientLayout({ children }: { children: React.ReactNode }) {
     return (
-      <div className="flex flex-col min-h-screen bg-[#0d0d0d]" id="consumer-app-shell">
+      <div className="flex flex-col min-h-screen bg-[#070c0e]" id="consumer-app-shell">
         <Navbar />
         <div className="flex-grow pt-[80px]" id="client-layout-inner">
           {children}
@@ -47,6 +63,9 @@ export default function App() {
 
       {/* Global alert notifications portal */}
       <ToastContainer />
+
+      {/* Mahindra Thar 4x4 Grand 3D Entry Animation */}
+      {showIntro && <TharIntro onComplete={handleIntroComplete} />}
 
       <Routes>
         

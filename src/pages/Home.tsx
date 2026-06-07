@@ -4,7 +4,7 @@
  */
 
 import { useEffect, useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { 
   ArrowRight, MessageSquare, Phone, ChevronDown, ChevronLeft, ChevronRight, Star, Sparkles, 
   MapPin, Shield, Check, Fuel, User, Gauge, CircleDot, Zap, X 
@@ -15,8 +15,13 @@ import { Car, Review } from '../types';
 import { CarCardSkeleton } from '../components/Skeleton';
 import { toast } from '../components/Toast';
 import { getWhatsAppLink, getGoogleMapsLink, getPhoneLink, getAppLink, isMobileUser } from '../lib/deepLink';
+import Logo from '../components/Logo';
+import BackgroundVideo from '../components/BackgroundVideo';
 
 export default function Home() {
+  const navigate = useNavigate();
+  const [isDriveAnimating, setIsDriveAnimating] = useState(false);
+  const [smokeParticles, setSmokeParticles] = useState<{ id: number; x: number; y: number; scale: number; opacity: number; driftX: number; driftY: number }[]>([]);
   const [settings, setSettings] = useState<Record<string, string>>({});
   const [featuredCars, setFeaturedCars] = useState<Car[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
@@ -26,6 +31,88 @@ export default function Home() {
 
   const [isReviewsHovered, setIsReviewsHovered] = useState(false);
   const reviewsScrollRef = useRef<HTMLDivElement>(null);
+  const [processedTharSrc, setProcessedTharSrc] = useState("/thar_orange_transparent_1780859149893.png");
+
+  // Dynamic client-side transparency processing to clean up absolute white background squares
+  useEffect(() => {
+    const rawSrc = "/thar_orange_transparent_1780859149893.png";
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+    img.src = rawSrc;
+    img.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext("2d");
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imgData.data;
+        // Sweep all absolute near-white boundary pixels and paint them completely transparent
+        for (let i = 0; i < data.length; i += 4) {
+          const r = data[i];
+          const g = data[i + 1];
+          const b = data[i + 2];
+          // Solid white threshold check
+          if (r > 240 && g > 240 && b > 240) {
+            data[i + 3] = 0; // Alpha
+          }
+        }
+        ctx.putImageData(imgData, 0, 0);
+        setProcessedTharSrc(canvas.toDataURL());
+      }
+    };
+  }, []);
+
+  // Moving drive launch with trailing tire smoke simulation
+  useEffect(() => {
+    if (!isDriveAnimating) return;
+
+    let particleId = 0;
+    const startTime = Date.now();
+
+    const interval = setInterval(() => {
+      const elapsed = Date.now() - startTime;
+      
+      // Calculate current car position as it accelerates to the right side (takes off after 250ms)
+      let carPercentX = 0;
+      if (elapsed > 250) {
+        const progress = Math.min((elapsed - 250) / 1250, 1);
+        // Exponential-like acceleration for a realistic "peeling out" launch!
+        carPercentX = Math.pow(progress, 1.8) * 160;
+      }
+
+      // Emitter is located at the rear wheels/exhaust of the car.
+      // Initially, the rear wheel is at roughly 22% of the container width. 
+      // As the car moves to the right, the emitter moves coordinate-wise with it.
+      const emitterX = 22 + carPercentX;
+
+      // Add smoke particles with backward drift
+      setSmokeParticles(prev => [
+        ...prev,
+        {
+          id: particleId++,
+          x: emitterX + (Math.random() - 0.5) * 3, // local scatter
+          y: 75 + (Math.random() - 0.5) * 10, // exhaust height alignment
+          scale: Math.random() * 0.9 + 0.6,
+          driftX: -3.5 - Math.random() * 3.5, // dynamic backward drift
+          driftY: -1.2 + Math.random() * 2.4, // smoke dispersal
+          opacity: Math.random() * 0.55 + 0.45,
+        }
+      ]);
+    }, 20);
+
+    // Coordinate the full transition & redirection to /cars
+    const timer = setTimeout(() => {
+      clearInterval(interval);
+      navigate('/cars');
+    }, 1500);
+
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timer);
+    };
+  }, [isDriveAnimating, navigate]);
 
   // Auto-scroll loop for customer reviews carousel
   useEffect(() => {
@@ -160,86 +247,120 @@ export default function Home() {
   const startingMonthly = settings.price_monthly_start || '29999';
 
   return (
-    <div className="bg-[#080808] relative" id="homepage-container">
+    <div className="bg-[#070c0e] relative" id="homepage-container">
       
       {/* ────────────────────────────────────────────────────────────────── */}
       {/* [HERO SECTION]                                                    */}
       {/* ────────────────────────────────────────────────────────────────── */}
-      <section className="relative pt-12 pb-24 md:pt-20 md:pb-32 overflow-hidden border-b border-[#1b1b1b]" id="section-hero">
+      <section className="relative pt-12 pb-24 md:pt-20 md:pb-32 overflow-hidden border-b border-[#132125]" id="section-hero">
         
-        {/* Premium Warm Gold Ambient Glow Overlays */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[350px] bg-gradient-to-r from-[#dfb15b]/10 to-[#cca43b]/10 rounded-full blur-[140px] pointer-events-none" />
-        <div className="absolute -top-12 left-1/4 w-[280px] h-[280px] bg-[#dfb15b]/5 rounded-full blur-[110px] pointer-events-none" />
-        <div className="absolute bottom-4 right-1/4  w-[320px] h-[320px] bg-[#cca43b]/5 rounded-full blur-[130px] pointer-events-none" />
+        {/* Play smoothly in the background, adjusted correctly */}
+        <BackgroundVideo />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           
-          <p className="font-mono text-xs text-[#888888] tracking-widest uppercase mb-6 flex items-center justify-center gap-2">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#dfb15b] inline-block animate-ping" />
+          {/* Centered Large Circular Logo Badge */}
+          <div className="flex justify-center mb-8 transform scale-95 sm:scale-100 hover:scale-[1.02] transition-transform duration-500">
+            <Logo size={160} variant="badge" />
+          </div>
+
+          <p className="font-mono text-xs text-[#8da4a8] tracking-widest uppercase mb-6 flex items-center justify-center gap-2">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00dfc1] inline-block animate-ping" />
             Est. 2024 / Self-Drive Rentals / Lucknow
           </p>
 
-          <h1 className="font-display text-4xl sm:text-6xl lg:text-8xl font-black tracking-tighter leading-none mb-8">
-            <div className="text-white">Drive the <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#dfb15b] via-[#fffbf2] to-[#cca43b]">{tagline.split('.')[0] || 'Difference'}</span>.</div>
-            <div className="text-white/80 text-3xl sm:text-5xl lg:text-6xl font-extrabold mt-1">Pay by the hour, day, or week.</div>
+          <h1 className="font-display text-4xl sm:text-6xl lg:text-7xl font-black tracking-tighter leading-none mb-8">
+            <div className="text-white">Drive the <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00dfc1] via-[#e6fffc] to-[#008b81]">{tagline.split('.')[0] || 'Difference'}</span>.</div>
+            <div className="text-white/80 text-2xl sm:text-4xl lg:text-5xl font-extrabold mt-2">Pay by the hour, day, or week.</div>
           </h1>
 
           <p className="max-w-2xl mx-auto text-sm sm:text-base text-[#737373] mb-12 font-sans font-light">
             {subtitle}
           </p>
 
-          {/* Call to Actions */}
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20">
+          {/* Call to Actions with high-performance responsive motion */}
+          <motion.div 
+            className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-20"
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.7 }}
+          >
             <Link 
               to="/cars" 
-              className="w-full sm:w-auto px-8 py-4 bg-[#f97316] hover:bg-orange-600 font-display font-bold text-black rounded-lg transition-all active:scale-95 text-center cursor-pointer shadow-lg shadow-orange-500/10 flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-4 bg-[#00dfc1] hover:bg-[#00bfa5] text-black font-display font-black text-xs uppercase tracking-wider rounded-lg transition-all active:scale-95 text-center cursor-pointer shadow-lg shadow-[#00dfc1]/15 flex items-center justify-center gap-2"
               id="hero-cta-book"
             >
-              Book a Car <ArrowRight size={18} />
+              Book a Car <ArrowRight size={14} className="animate-[pulse_1.5s_infinite]" />
             </Link>
             
             <a 
               href={waLink} 
               target="_blank" 
               rel="noopener noreferrer" 
-              className="w-full sm:w-auto px-8 py-4 bg-[#161616] hover:bg-[#262626] border border-[#262626] hover:border-[#f97316]/30 text-white font-display font-bold rounded-lg transition-all active:scale-95 text-center flex items-center justify-center gap-2"
+              className="w-full sm:w-auto px-8 py-4 bg-[#0c1518]/80 hover:bg-[#132125] border border-[#132125] hover:border-[#00dfc1]/30 text-white font-display font-bold text-xs uppercase tracking-wider rounded-lg transition-all active:scale-95 text-center flex items-center justify-center gap-2"
               id="hero-cta-whatsapp"
             >
-              <MessageSquare size={18} className="text-green-500" /> WhatsApp Us
+              <MessageSquare size={14} className="text-[#00dfc1]" /> WhatsApp Us
             </a>
-          </div>
 
-          {/* Pricing Stat Pills */}
+            {/* High-end Replay Intro Trigger */}
+            <button
+              onClick={() => {
+                sessionStorage.removeItem('drive_eaze_intro_played');
+                window.location.reload();
+              }}
+              className="w-full sm:w-auto px-6 py-4 bg-[#0c1518]/40 hover:bg-[#132125] border border-[#132125] hover:border-[#00dfc1]/30 text-[#8da4a8] hover:text-white font-mono text-[10px] uppercase tracking-wider rounded-lg transition-all active:scale-95 text-center flex items-center justify-center gap-2 cursor-pointer"
+            >
+              <Zap size={11} className="text-[#00dfc1]" /> Replay Thar 3D Intro
+            </button>
+          </motion.div>
+
+          {/* Pricing Stat Pills with dynamic tilt physics mimicking shock-absorbers */}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 max-w-4xl mx-auto" id="hero-pricing-stats">
-            <div className="bg-[#161616] border border-[#262626] px-4 py-3.5 rounded-lg flex flex-col justify-center items-center">
-              <span className="font-mono text-[10px] text-[#737373] uppercase tracking-wider">Hourly Tier</span>
-              <span className="font-display font-extrabold text-white text-lg mt-0.5">₹{startingHourly}<span className="text-xs text-[#737373] font-normal">/hr</span></span>
-            </div>
-            <div className="bg-[#161616] border border-[#262626] px-4 py-3.5 rounded-lg flex flex-col justify-center items-center">
-              <span className="font-mono text-[10px] text-[#737373] uppercase tracking-wider">Daily Tier</span>
-              <span className="font-display font-extrabold text-white text-lg mt-0.5">₹{startingDaily}<span className="text-xs text-[#737373] font-normal">/day</span></span>
-            </div>
-            <div className="bg-[#161616] border border-[#262626] px-4 py-3.5 rounded-lg flex flex-col justify-center items-center">
-              <span className="font-mono text-[10px] text-[#737373] uppercase tracking-wider">Weekly Tier</span>
-              <span className="font-display font-extrabold text-white text-lg mt-0.5">₹{startingWeekly}<span className="text-xs text-[#737373] font-normal">/wk</span></span>
-            </div>
-            <div className="bg-[#161616] border border-[#262626] px-4 py-3.5 rounded-lg flex flex-col justify-center items-center">
-              <span className="font-mono text-[10px] text-[#737373] uppercase tracking-wider">Monthly Tier</span>
-              <span className="font-display font-extrabold text-white text-lg mt-0.5">₹{parseFloat(startingMonthly).toLocaleString('en-IN')}<span className="text-xs text-[#737373] font-normal">/mo</span></span>
-            </div>
+            <motion.div 
+              whileHover={{ y: -6, rotateZ: -0.6, scale: 1.02, boxShadow: "0px 10px 30px rgba(0, 223, 193, 0.15)" }}
+              className="bg-[#0c1518]/95 backdrop-blur-md border border-[#132125] hover:border-[#00dfc1]/30 px-4 py-4 rounded-lg flex flex-col justify-center items-center transition-all duration-350 cursor-pointer group"
+            >
+              <span className="font-mono text-[9px] text-[#8da4a8] uppercase tracking-widest">Hourly Tier</span>
+              <span className="font-display font-black text-[#00dfc1] group-hover:text-white text-lg mt-0.5 transition-colors">₹{startingHourly}<span className="text-xs text-[#8da4a8] font-normal">/hr</span></span>
+            </motion.div>
+            
+            <motion.div 
+              whileHover={{ y: -6, rotateZ: 0.6, scale: 1.02, boxShadow: "0px 10px 30px rgba(0, 223, 193, 0.15)" }}
+              className="bg-[#0c1518]/95 backdrop-blur-md border border-[#132125] hover:border-[#00dfc1]/30 px-4 py-4 rounded-lg flex flex-col justify-center items-center transition-all duration-350 cursor-pointer group"
+            >
+              <span className="font-mono text-[9px] text-[#8da4a8] uppercase tracking-widest">Daily Tier</span>
+              <span className="font-display font-black text-[#00dfc1] group-hover:text-white text-lg mt-0.5 transition-colors">₹{startingDaily}<span className="text-xs text-[#8da4a8] font-normal">/day</span></span>
+            </motion.div>
+            
+            <motion.div 
+              whileHover={{ y: -6, rotateZ: -0.6, scale: 1.02, boxShadow: "0px 10px 30px rgba(0, 223, 193, 0.15)" }}
+              className="bg-[#0c1518]/95 backdrop-blur-md border border-[#132125] hover:border-[#00dfc1]/30 px-4 py-4 rounded-lg flex flex-col justify-center items-center transition-all duration-350 cursor-pointer group"
+            >
+              <span className="font-mono text-[9px] text-[#8da4a8] uppercase tracking-widest">Weekly Tier</span>
+              <span className="font-display font-black text-[#00dfc1] group-hover:text-white text-lg mt-0.5 transition-colors">₹{startingWeekly}<span className="text-xs text-[#8da4a8] font-normal">/wk</span></span>
+            </motion.div>
+            
+            <motion.div 
+              whileHover={{ y: -6, rotateZ: 0.6, scale: 1.02, boxShadow: "0px 10px 30px rgba(0, 223, 193, 0.15)" }}
+              className="bg-[#0c1518]/95 backdrop-blur-md border border-[#132125] hover:border-[#00dfc1]/30 px-4 py-4 rounded-lg flex flex-col justify-center items-center transition-all duration-350 cursor-pointer group"
+            >
+              <span className="font-mono text-[9px] text-[#8da4a8] uppercase tracking-widest">Monthly Tier</span>
+              <span className="font-display font-black text-[#00dfc1] group-hover:text-white text-lg mt-0.5 transition-colors">₹{parseFloat(startingMonthly).toLocaleString('en-IN')}<span className="text-xs text-[#8da4a8] font-normal">/mo</span></span>
+            </motion.div>
           </div>
 
         </div>
 
-        {/* Brand infinite marquee ticker  */}
-        <div className="mt-20 border-t border-b border-[#262626] py-5 bg-[#0a0a0a]" id="hero-marquee">
+        {/* Brand infinite marquee ticker styled with luxury muted cyan borders */}
+        <div className="mt-20 border-t border-b border-[#132125] py-5 bg-[#04080a]" id="hero-marquee">
           <div className="relative w-full overflow-hidden whitespace-nowrap mb-3.5">
-            <div className="inline-block scroller-left font-display font-extrabold uppercase tracking-widest text-[#262626] text-xl sm:text-2xl select-none">
+            <div className="inline-block scroller-left font-display font-extrabold uppercase tracking-widest text-[#132125] text-xl sm:text-2xl select-none">
               Maruti Suzuki • Hyundai • Tata • Mahindra • Kia • Renault • MG Motors • Volkswagen • Skoda • Honda • Toyota • BMW • Audi • Maruti Suzuki • Hyundai • Tata • Mahindra • Kia • Renault • MG Motors • Volkswagen • Skoda • Honda • Toyota • BMW • Audi • 
             </div>
           </div>
           <div className="relative w-full overflow-hidden whitespace-nowrap">
-            <div className="inline-block scroller-right font-display font-extrabold uppercase tracking-widest text-[#262626] text-xl sm:text-2xl select-none opacity-50">
+            <div className="inline-block scroller-right font-display font-extrabold uppercase tracking-widest text-[#132125] text-xl sm:text-2xl select-none opacity-50">
               Toyota • BMW • Audi • MG Motors • Suzuki • Kia • Tata • Hyundai • Nexon • Fortuner • Legender • Creta • Thar • Swift • Carens • Innova Hycross • Toyota • BMW • Audi • MG Motors • Suzuki • Kia • Tata • Hyundai • Nexon • Fortuner • Legender 
             </div>
           </div>
@@ -248,183 +369,233 @@ export default function Home() {
       </section>
 
       {/* ────────────────────────────────────────────────────────────────── */}
-      {/* [SECTION 03 — FLEET PREVIEW]                                      */}
+      {/* [SECTION 03 — INTERACTIVE MAHINDRA THAR BURNOUT ACTION BUTTON]    */}
       {/* ────────────────────────────────────────────────────────────────── */}
-      <section className="py-24 border-b border-[#262626]" id="section-03-fleet">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          
-          <div className="flex flex-col md:flex-row items-start md:items-end justify-between mb-16 gap-4">
-            <div>
-              <p className="font-mono text-xs text-[#f97316] uppercase mb-2 tracking-widest">[03] / Current Fleet</p>
-              <h2 className="font-display text-3xl sm:text-5xl font-black text-white">Available Now.</h2>
-            </div>
-            <Link 
-              to="/cars" 
-              className="text-[#f97316] hover:text-[#facc15] font-display font-bold text-sm flex items-center gap-1 group/link cursor-pointer"
-            >
-              Browse entire fleet ({featuredCars.length}+ luxury cars) 
-              <ArrowRight size={16} className="group-hover/link:translate-x-1 transition-transform" />
-            </Link>
+      <section className="relative py-28 border-b border-[#132125] bg-[#0c1518]/30 overflow-hidden" id="section-03-fleet">
+        {/* Dynamic mesh glow background to draw focus */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-[#00dfc1]/5 rounded-full blur-[140px] pointer-events-none" />
+        
+        <div className="max-w-4xl mx-auto px-4 text-center relative z-10">
+          <div className="mb-6">
+            <p className="font-mono text-xs text-[#00dfc1] uppercase mb-2 tracking-widest">[03] / Select Your Vehicle</p>
+            <h2 className="font-display text-2xl sm:text-4xl font-extrabold text-white">
+              {isDriveAnimating ? "Harnessing the Powertrain..." : "Ready to take the wheel?"}
+            </h2>
           </div>
-
-          {!carsLoaded ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[1, 2, 3].map(i => <CarCardSkeleton key={i} />)}
-            </div>
-          ) : featuredCars.length === 0 ? (
-            <div className="bg-[#161616] border border-[#262626] rounded-xl py-16 px-4 text-center">
-              <Sparkles className="mx-auto text-[#f97316] mb-4" size={40} />
-              <p className="text-[#a3a3a3] font-medium text-lg mb-6">No cars are currently flagged as available. We have more on the lot!</p>
-              <a 
-                href={waLink} 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="px-6 py-3 bg-[#f97316] hover:bg-orange-600 font-bold text-black rounded text-sm transition-all"
+          
+          {/* Beautiful Car-Shaped 3D Glowing Button */}
+          <div className="flex justify-center items-center py-6">
+            <button 
+              id="thar-launch-btn"
+              onClick={() => {
+                if (isDriveAnimating) return;
+                setIsDriveAnimating(true);
+              }}
+              className="block w-full max-w-xl cursor-pointer text-left focus:outline-none"
+              disabled={isDriveAnimating}
+            >
+              <motion.div
+                whileHover={!isDriveAnimating ? { 
+                  y: -8, 
+                  scale: 1.03, 
+                  boxShadow: "0px 25px 60px rgba(0, 223, 193, 0.28)",
+                } : {}}
+                whileTap={!isDriveAnimating ? { scale: 0.98 } : {}}
+                transition={{ type: "spring", stiffness: 350, damping: 18 }}
+                className="relative bg-gradient-to-br from-[#0c1518] via-[#05090b] to-[#020405] border-2 border-[#132125] hover:border-[#00dfc1]/60 px-6 py-10 rounded-[32px] overflow-hidden group shadow-2xl transition-colors duration-500 flex flex-col items-center justify-center min-h-[220px]"
               >
-                WhatsApp staff for custom options
-              </a>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {featuredCars.map((car) => (
-                <div 
-                  key={car.id} 
-                  className="bg-[#161616] border border-[#262626] hover:border-[#f97316]/30 rounded-xl overflow-hidden group transition-all duration-300 flex flex-col justify-between"
-                  id={`car-card-${car.id}`}
-                >
-                  {/* Car Image with Status Indicator overlay */}
-                  <div className="relative aspect-video w-full bg-[#0d0d0d] overflow-hidden">
+                {/* Glowing outline glow layer */}
+                <div className="absolute inset-0 bg-gradient-to-r from-[#00dfc1]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
+                
+                {/* Underglow Ground Shadow glow below the Thar */}
+                <div className="absolute top-[64%] left-1/2 -translate-x-1/2 w-3/4 h-5 bg-gradient-to-r from-transparent via-[#00dfc1]/15 to-transparent rounded-full blur-md opacity-80 pointer-events-none group-hover:via-[#00dfc1]/30 transition-all duration-300" />
+                
+                {/* Dynamic animated neon light bars representing grid headlights */}
+                <div className="absolute left-6 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-[#00dfc1]/50 rounded-full blur-sm opacity-50 group-hover:opacity-100 transition-opacity animate-pulse pointer-events-none" />
+                <div className="absolute right-6 top-1/2 -translate-y-1/2 w-1.5 h-12 bg-[#00dfc1]/50 rounded-full blur-sm opacity-50 group-hover:opacity-100 transition-opacity animate-pulse pointer-events-none" />
+                
+                {/* Top/roof indicator style */}
+                <span className="absolute top-3.5 font-mono text-[9px] tracking-[0.35em] text-[#8da4a8] uppercase font-bold text-center pointer-events-none">
+                  {isDriveAnimating ? "REV COUNTER AT PEAK" : "DRIVE-EAZE LUCKNOW SPEC"}
+                </span>
+
+                {/* ANIMATED SMOKE EMITTER CONTAINER */}
+                <div className="absolute inset-0 pointer-events-none z-10 overflow-hidden">
+                  {smokeParticles.map(p => (
+                    <motion.div
+                      key={p.id}
+                      className="absolute rounded-full bg-gradient-to-br from-[#8da4a8]/50 to-[#132125]/20 mix-blend-screen filter blur-[5px]"
+                      style={{
+                        left: `${p.x}%`,
+                        top: `${p.y}%`,
+                        width: '26px',
+                        height: '26px',
+                      }}
+                      initial={{ scale: p.scale * 0.3, opacity: p.opacity, x: 0, y: 0 }}
+                      animate={{ 
+                        scale: p.scale * 4.8, 
+                        opacity: 0, 
+                        x: p.driftX * 18, 
+                        y: p.driftY * 12,
+                      }}
+                      transition={{ duration: 1.1, ease: 'easeOut' }}
+                    />
+                  ))}
+                </div>
+
+                {/* RUGGED ILLUSTRATED MAHINDRA THAR CONTAINER */}
+                <div className="relative w-full max-w-sm h-36 flex justify-center items-center z-20 mt-4 overflow-visible">
+                  <motion.div
+                    id="thar-intro-car-vehicle"
+                    className="relative w-[280px] h-full flex items-center justify-center pointer-events-none"
+                    animate={isDriveAnimating ? {
+                      // Burnout vibrate from 0 to 250ms, then launch exponentially off the right side of the screen!
+                      x: [
+                        "0%", "1.5%", "-1.5%", "2%", "-1%", // rumble vibration (0 to 250ms)
+                        "4%", "20%", "50%", "90%", "140%", "180%" // speed away to the right (250ms to 1500ms)
+                      ],
+                      y: [
+                        0, -2, 2, -1.5, 1.5, // rumble (0 to 250ms)
+                        -3, 1, -2, 1, 0, 0 // flight suspension settle (250ms to 1500ms)
+                      ],
+                      skewX: [
+                        0, -1, 1, -1.5, 1.5, // rumble (0 to 250ms)
+                        -3, -6, -10, -12, -4, 0 // drag slant (250ms to 1500ms)
+                      ],
+                      scale: [
+                        1, 1.015, 0.985, 1.02, 0.99, // rumble (0 to 250ms)
+                        1.01, 1.025, 1.01, 0.97, 0.94, 0.90 // perspective size reduction (250ms to 1500ms)
+                      ],
+                    } : {
+                      y: [0, -2.5, 0],
+                    }}
+                    transition={isDriveAnimating ? {
+                      times: [0, 0.05, 0.1, 0.15, 0.17, 0.25, 0.4, 0.55, 0.75, 0.9, 1.0],
+                      duration: 1.5,
+                      ease: [0.42, 0, 0.58, 1]
+                    } : {
+                      repeat: Infinity,
+                      duration: 3.5,
+                      ease: "easeInOut"
+                    }}
+                  >
+                    {/* Vibrant Custom Vector Thar Image with Transparent Background and Horizontal Flip */}
                     <img 
-                      src={car.images[0]} 
-                      alt={`${car.brand} ${car.name}`} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      src={processedTharSrc}
+                      alt="Mahindra Thar Vector"
+                      className="w-full h-auto object-contain drop-shadow-[0_12px_24px_rgba(0,0,0,0.65)] -scale-x-100 hover:scale-105 transition-all duration-300"
                       referrerPolicy="no-referrer"
                     />
-                    
-                    {/* Status Dot Ring */}
-                    <div className="absolute top-4 right-4 bg-[#0d0d0d]/80 backdrop-blur-md px-3 py-1.5 rounded-full border border-[#262626] flex items-center gap-2">
-                      <span className={`w-2.5 h-2.5 rounded-full ${
-                        car.status === 'available' ? 'bg-emerald-500 shadow-[0_0_10px_#10b981]' : 
-                        car.status === 'booked' ? 'bg-rose-500 shadow-[0_0_10px_#f43f5e]' : 
-                        'bg-amber-500'
-                      }`} />
-                      <span className="font-mono text-[9px] uppercase tracking-wider text-white">{car.status}</span>
-                    </div>
 
-                    <div className="absolute bottom-4 left-4 bg-[#f97316] text-black font-mono text-[10px] font-bold px-3 py-1 rounded">
-                      {car.category}
-                    </div>
-                  </div>
+                    {/* Cyber Neon Underglow attached immediately under wheels inside layout */}
+                    <div className="absolute bottom-4 left-[20%] right-[20%] h-[3px] bg-[#00dfc1] opacity-50 group-hover:opacity-90 rounded-full blur-[1.5px] animate-pulse transition-all pointer-events-none" />
+                  </motion.div>
+                </div>
 
-                  <div className="p-6 flex-1 flex flex-col justify-between space-y-6">
-                    <div>
-                      {/* Name & Year */}
-                      <div className="flex justify-between items-center mb-1">
-                        <h3 className="font-display font-bold text-xl text-white group-hover:text-[#f97316] transition-colors">
-                          {car.brand} {car.name}
-                        </h3>
-                        <span className="font-mono text-xs text-[#737373]">{car.year}</span>
-                      </div>
-                      
-                      {/* Small Subtitle */}
-                      <p className="text-xs text-[#737373] font-sans line-clamp-1 mb-4">{car.model}</p>
-
-                      {/* Specs Row */}
-                      <div className="flex gap-2 flex-wrap text-xs font-mono text-[#a3a3a3]">
-                        <span className="bg-[#0f0f0f] border border-[#262626] px-2.5 py-1 rounded flex items-center gap-1">
-                          <Fuel size={12} className="text-[#f97316]" /> {car.fuel_type}
-                        </span>
-                        <span className="bg-[#0f0f0f] border border-[#262626] px-2.5 py-1 rounded flex items-center gap-1">
-                          <Gauge size={12} className="text-[#facc15]" /> {car.transmission}
-                        </span>
-                        <span className="bg-[#0f0f0f] border border-[#262626] px-2.5 py-1 rounded flex items-center gap-1">
-                          <User size={12} className="text-[#f97316]" /> {car.seats} Seats
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Booking Price Row */}
-                    <div className="border-t border-[#262626] pt-4 mt-auto flex items-end justify-between">
-                      <div className="space-y-0.5">
-                        <div className="font-display font-black text-[#f97316] text-2xl">
-                          ₹{Number(car.price_per_day).toLocaleString('en-IN')}
-                          <span className="text-xs font-mono font-normal text-[#a3a3a3]">/day</span>
-                        </div>
-                        <div className="font-mono text-[10px] text-[#737373]">
-                          or ₹{car.price_per_hour}/hour
-                        </div>
-                      </div>
-
-                      <Link 
-                        to={`/cars/${car.id}`} 
-                        className="px-4.5 py-2.5 bg-[#161616] hover:bg-[#f97316] group-hover:bg-[#1f1f1f] text-white hover:text-black font-display font-bold text-xs rounded transition-all border border-[#262626] flex items-center gap-2 cursor-pointer"
-                        id={`view-car-btn-${car.id}`}
-                      >
-                        View Details <ArrowRight size={14} />
-                      </Link>
-                    </div>
-
+                {/* Typography label showing available cars activation */}
+                <div className="mt-2 text-center relative z-20 px-8">
+                  <h3 
+                    className={`font-display font-black text-lg sm:text-2xl uppercase tracking-wider text-center mb-1.5 transition-all duration-300 ${
+                      isDriveAnimating ? "text-[#00dfc1] animate-pulse" : "text-white group-hover:text-[#00dfc1]"
+                    }`}
+                  >
+                    {isDriveAnimating ? "BURNOUT IN PROGRESS..." : "Browse The Available Cars"}
+                  </h3>
+                  
+                  <div className="flex items-center justify-center gap-1 text-[9px] font-mono tracking-widest text-[#8da4a8] uppercase">
+                    <span>{isDriveAnimating ? "LEAVING DRAG LINE..." : "ENTER FLEET ENGINE"}</span>
+                    <Sparkles size={8} className={`text-[#00dfc1] ${isDriveAnimating ? "animate-spin" : ""}`} />
+                    <span>{isDriveAnimating ? "ZERO TO SIXTY..." : "ZERO SECURITY DEPOSIT"}</span>
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
 
+                {/* Sleek Underglow reflecting off the bottom edge */}
+                <div className="absolute bottom-1.5 w-2/3 h-[1.5px] bg-gradient-to-r from-transparent via-[#00dfc1]/30 to-transparent group-hover:via-[#00dfc1]/70 group-hover:blur-[1px] transition-all duration-300 pointer-events-none" />
+              </motion.div>
+            </button>
+          </div>
+          
+          <p className="text-xs text-[#8da4a8] font-mono tracking-wider mt-4">
+            {isDriveAnimating ? (
+              <span className="text-[#00dfc1] font-bold">Unleashing 4x4 offroad torque. Launch sequence initiated...</span>
+            ) : (
+              <>Click to launch instant reservation system. Rates starting at just <strong>₹{startingHourly}/hr</strong>!</>
+            )}
+          </p>
         </div>
       </section>
 
       {/* ────────────────────────────────────────────────────────────────── */}
       {/* [SECTION 02 — WHY US]                                             */}
       {/* ────────────────────────────────────────────────────────────────── */}
-      <section className="py-24 bg-[#0a0a0a] border-b border-[#262626]" id="section-02-why">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <section className="relative py-24 bg-[#0a0f12]/90 border-b border-[#132125]" id="section-02-why">
+        {/* Underglow decorative mesh */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[250px] bg-[#00dfc1]/3 rounded-full blur-[100px] pointer-events-none" />
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           
           <div className="text-left mb-16">
-            <p className="font-mono text-xs text-[#facc15] uppercase mb-2 tracking-widest">[02] / Why Us</p>
+            <p className="font-mono text-xs text-[#00dfc1] uppercase mb-2 tracking-widest">[02] / Core Integrity</p>
             <h2 className="font-display text-3xl sm:text-5xl font-black text-white">Why choose Drive-Eaze.</h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             
-            <div className="bg-[#161616] border border-[#262626] p-8 rounded-xl space-y-4 hover:-translate-y-1 transition-transform">
-              <div className="w-12 h-12 rounded bg-orange-500/10 border border-[#f97316]/30 flex items-center justify-center text-[#f97316]">
-                <MapPin size={22} />
+            <motion.div 
+              whileHover={{ y: -8, rotateZ: -1, scale: 1.025, boxShadow: "0px 15px 35px rgba(0, 223, 193, 0.12)" }}
+              transition={{ type: "spring", stiffness: 200, damping: 15 }}
+              className="bg-[#0c1518]/90 border border-[#132125] p-8 rounded-xl space-y-4 cursor-pointer group transition-all duration-350"
+            >
+              <div className="w-12 h-12 rounded bg-[#00dfc1]/10 border border-[#00dfc1]/30 flex items-center justify-center text-[#00dfc1] group-hover:rotate-12 transition-transform duration-300">
+                <MapPin size={22} className="group-hover:scale-110 transition-transform" />
               </div>
-              <h3 className="font-display text-white font-bold text-lg">Doorstep Delivery</h3>
-              <p className="text-xs text-[#737373] leading-relaxed">
+              <h3 className="font-display text-white group-hover:text-[#00dfc1] font-bold text-lg transition-colors">Doorstep Delivery</h3>
+              <p className="text-xs text-[#8da4a8] leading-relaxed">
                 Home Pickup & Return. Choose to pick up from Gomti Nagar or get it delivered straight to Lucknow airport/hotel limits.
               </p>
-            </div>
+            </motion.div>
 
-            <div className="bg-[#161616] border border-[#262626] p-8 rounded-xl space-y-4 hover:-translate-y-1 transition-transform">
-              <div className="w-12 h-12 rounded bg-amber-500/10 border border-[#facc15]/30 flex items-center justify-center text-[#facc15]">
-                <Zap size={22} />
+            <motion.div 
+              whileHover={{ y: -8, rotateZ: 1, scale: 1.025, boxShadow: "0px 15px 35px rgba(0, 223, 193, 0.12)" }}
+              transition={{ type: "spring", stiffness: 200, damping: 15 }}
+              className="bg-[#0c1518]/90 border border-[#132125] p-8 rounded-xl space-y-4 cursor-pointer group transition-all duration-350"
+            >
+              <div className="w-12 h-12 rounded bg-[#00dfc1]/10 border border-[#00dfc1]/30 flex items-center justify-center text-[#00dfc1] group-hover:-rotate-12 transition-transform duration-300">
+                <Zap size={22} className="group-hover:scale-110 transition-transform" />
               </div>
-              <h3 className="font-display text-white font-bold text-lg">Flexible Pricing</h3>
-              <p className="text-xs text-[#737373] leading-relaxed">
+              <h3 className="font-display text-white group-hover:text-[#00dfc1] font-bold text-lg transition-colors">Flexible Pricing</h3>
+              <p className="text-xs text-[#8da4a8] leading-relaxed">
                 Pay by hour, day, week or month. Select the perfect duration and only pay for exactly what you intend to drive.
               </p>
-            </div>
+            </motion.div>
 
-            <div className="bg-[#161616] border border-[#262626] p-8 rounded-xl space-y-4 hover:-translate-y-1 transition-transform">
-              <div className="w-12 h-12 rounded bg-orange-500/10 border border-[#f97316]/30 flex items-center justify-center text-[#f97316]">
-                <Shield size={22} />
+            <motion.div 
+              whileHover={{ y: -8, rotateZ: -1, scale: 1.025, boxShadow: "0px 15px 35px rgba(0, 223, 193, 0.12)" }}
+              transition={{ type: "spring", stiffness: 200, damping: 15 }}
+              className="bg-[#0c1518]/90 border border-[#132125] p-8 rounded-xl space-y-4 cursor-pointer group transition-all duration-350"
+            >
+              <div className="w-12 h-12 rounded bg-[#00dfc1]/10 border border-[#00dfc1]/30 flex items-center justify-center text-[#00dfc1] group-hover:rotate-12 transition-transform duration-300">
+                <Shield size={22} className="group-hover:scale-110 transition-transform" />
               </div>
-              <h3 className="font-display text-white font-bold text-lg">Highly Maintained Fleet</h3>
-              <p className="text-xs text-[#737373] leading-relaxed">
+              <h3 className="font-display text-white group-hover:text-[#00dfc1] font-bold text-lg transition-colors">Highly Maintained Fleet</h3>
+              <p className="text-xs text-[#8da4a8] leading-relaxed">
                 Inspected, vacuumed, and sanitized before keys are handed out. Zero mechanical compromises and full health logs.
               </p>
-            </div>
+            </motion.div>
 
-            <div className="bg-[#161616] border border-[#262626] p-8 rounded-xl space-y-4 hover:-translate-y-1 transition-transform">
-              <div className="w-12 h-12 rounded bg-amber-500/10 border border-[#facc15]/30 flex items-center justify-center text-[#facc15]">
-                <User size={22} />
+            <motion.div 
+              whileHover={{ y: -8, rotateZ: 1, scale: 1.025, boxShadow: "0px 15px 35px rgba(0, 223, 193, 0.12)" }}
+              transition={{ type: "spring", stiffness: 200, damping: 15 }}
+              className="bg-[#0c1518]/90 border border-[#132125] p-8 rounded-xl space-y-4 cursor-pointer group transition-all duration-350"
+            >
+              <div className="w-12 h-12 rounded bg-[#00dfc1]/10 border border-[#00dfc1]/30 flex items-center justify-center text-[#00dfc1] group-hover:-rotate-12 transition-transform duration-300">
+                <User size={22} className="group-hover:scale-110 transition-transform" />
               </div>
-              <h3 className="font-display text-white font-bold text-lg">24/7 Support</h3>
-              <p className="text-xs text-[#737373] leading-relaxed">
+              <h3 className="font-display text-white group-hover:text-[#00dfc1] font-bold text-lg transition-colors">24/7 Support</h3>
+              <p className="text-xs text-[#8da4a8] leading-relaxed">
                 We answer at 3 AM. No robotic filters. Genuine, professional support assistants ready to assist on Lucknow outstations.
               </p>
-            </div>
+            </motion.div>
 
           </div>
 
@@ -787,93 +958,7 @@ export default function Home() {
         </div>
       </section>
 
-      {/* ────────────────────────────────────────────────────────────────── */}
-      {/* [SECTION 11.5 — MOBILE COMPANION APP]                             */}
-      {/* ────────────────────────────────────────────────────────────────── */}
-      <section className="py-20 border-b border-[#1b1b1b]" id="section-11.5-app-promo">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-br from-[#121212] via-[#0d0d0d] to-[#121212] border border-[#1b1b1b] rounded-2xl p-8 sm:p-12 relative overflow-hidden" id="app-cta-box">
-            
-            {/* Elegant Background Gold Overlay Shapes */}
-            <div className="absolute top-1/2 left-2/3 w-[500px] h-[250px] bg-[#dfb15b]/5 rounded-full blur-[100px] pointer-events-none" />
-            <div className="absolute -bottom-8 left-8 w-[200px] h-[200px] bg-[#cca43b]/5 rounded-full blur-[80px] pointer-events-none" />
 
-            <div className="flex flex-col lg:flex-row items-center justify-between gap-12 relative z-10">
-              
-              {/* Left Column Description */}
-              <div className="text-left space-y-5 max-w-xl">
-                <p className="font-mono text-xs text-[#dfb15b] uppercase tracking-widest">[11.5] / Mobile Companion App</p>
-                <div className="space-y-2">
-                  <h2 className="font-display text-2xl sm:text-4xl font-black text-white">
-                    Experience Drive-Eaze. <br />First-Class Native App.
-                  </h2>
-                  <p className="text-xs sm:text-sm text-[#737373] leading-relaxed">
-                    Most drivers prefer using our dedicated Android application on their mobile phones. Unlock lightning-fast search indexing, pre-filled rental security checklists, live vehicle tracking, and offline reservation access with single-tap launches.
-                  </p>
-                </div>
-
-                {/* Features layout list */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                  <div className="flex items-start gap-2.5 text-left">
-                    <div className="bg-[#dfb15b]/10 text-[#dfb15b] p-1.5 rounded-lg shrink-0">
-                      <Zap size={14} className="fill-current" />
-                    </div>
-                    <div>
-                      <h4 className="font-display font-bold text-xs text-white">2x Faster Performance</h4>
-                      <p className="text-[11px] text-[#737373]">Optimized queries without browser latency.</p>
-                    </div>
-                  </div>
-
-                  <div className="flex items-start gap-2.5 text-left">
-                    <div className="bg-[#cca43b]/10 text-[#cca43b] p-1.5 rounded-lg shrink-0">
-                      <Shield size={14} />
-                    </div>
-                    <div>
-                      <h4 className="font-display font-bold text-xs text-white">Encrypted Checklists</h4>
-                      <p className="text-[11px] text-[#737373]">Secure license and document state backups.</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Column Launcher Controls */}
-              <div className="w-full lg:w-auto bg-[#0a0a0a] border border-[#1b1b1b] p-6 sm:p-8 rounded-xl flex flex-col justify-center items-stretch gap-4 min-w-[300px] sm:min-w-[400px]">
-                
-                <h4 className="font-mono text-[10px] text-gray-400 uppercase tracking-widest text-center border-b border-[#1b1b1b]/60 pb-3">
-                  Tap to launch or download file
-                </h4>
-
-                <a 
-                  href={getAppLink('/cars')}
-                  className="px-6 py-4 bg-[#dfb15b] hover:bg-[#cca43b] text-black font-display font-black text-xs uppercase rounded-lg tracking-widest transition-all active:scale-95 shadow-lg flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  <Zap size={14} className="fill-black animate-bounce" /> Launch App Instantly
-                </a>
-
-                <div className="relative flex py-2 items-center">
-                  <div className="flex-grow border-t border-[#1b1b1b]" />
-                  <span className="flex-shrink mx-4 font-mono text-[10px] text-[#525252] uppercase">Or Install Locally</span>
-                  <div className="flex-grow border-t border-[#1b1b1b]" />
-                </div>
-
-                <a 
-                  href="https://driveeaze.in/assets/app/drive-eaze-latest.apk"
-                  download="drive-eaze-latest.apk"
-                  className="px-6 py-4 bg-[#121212] hover:bg-[#1a1a1a] text-white border border-[#1b1b1b] hover:border-[#dfb15b]/30 font-display font-bold text-xs uppercase rounded-lg tracking-wider transition-all active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
-                >
-                  Download .APK Application
-                </a>
-
-                <p className="text-[10px] text-[#525252] text-center font-sans mt-1">
-                  Works seamlessly on Android/iOS devices. Perfect fallback for low cellular signal areas.
-                </p>
-
-              </div>
-
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* ────────────────────────────────────────────────────────────────── */}
       {/* [SECTION 12 — HOST EARNING]                                       */}

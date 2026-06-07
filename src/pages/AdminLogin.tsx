@@ -8,6 +8,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { db, supabase } from '../lib/supabase';
 import { toast } from '../components/Toast';
 import { KeyRound, ShieldAlert, Sparkles, User, Info } from 'lucide-react';
+import Logo from '../components/Logo';
 
 export default function AdminLogin() {
   const navigate = useNavigate();
@@ -49,21 +50,21 @@ export default function AdminLogin() {
   };
 
   return (
-    <div className="bg-[#0d0d0d] min-h-[85vh] flex items-center justify-center p-4 relative" id="admin-login-viewport">
+    <div className="bg-[#070c0e] min-h-[85vh] flex items-center justify-center p-4 relative" id="admin-login-viewport">
       
-      {/* Decorative vector sparks */}
-      <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-[#f97316]/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-[#facc15]/5 rounded-full blur-3xl pointer-events-none" />
+      {/* Decorative vector sparks mapped to cyber teal */}
+      <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-[#00dfc1]/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-72 h-72 bg-[#008b81]/5 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-md w-full bg-[#161616] border border-[#262626] rounded-xl p-8 space-y-6 shadow-2xl relative" id="admin-login-box">
+      <div className="max-w-md w-full bg-[#0c1518] border border-[#132125] rounded-xl p-8 space-y-6 shadow-2xl relative" id="admin-login-box">
         
-        {/* Branding header */}
-        <div className="text-center space-y-2">
-          <Link to="/" className="font-display text-2xl font-black tracking-tighter text-white">
-            <span className="text-[#f97316]">D</span>RIVE<span className="text-[#f97316]">-</span>EAZE
+        {/* Branding header with circular Logo Badge */}
+        <div className="text-center space-y-4 flex flex-col items-center justify-center">
+          <Link to="/" className="focus:outline-none">
+            <Logo size={135} variant="badge" />
           </Link>
-          <h1 className="font-display text-xl font-bold text-white tracking-tight pt-2">Staff Administrator Portal</h1>
-          <p className="text-xs text-[#737373] max-w-xs mx-auto">Access Lucknow fleet listings, active rental bookings, and review approval queues.</p>
+          <h1 className="font-display text-xl font-bold text-white tracking-tight pt-1">Staff Administrator Portal</h1>
+          <p className="text-xs text-[#8da4a8] max-w-xs mx-auto">Access Lucknow fleet listings, active rental bookings, and review approval queues.</p>
         </div>
 
 
