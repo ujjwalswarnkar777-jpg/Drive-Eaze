@@ -1,0 +1,6 @@
+{
+  "name": "Drive-Eaze",
+  "description": "Premium self-drive car rental platform in Lucknow, India. Book cars by the hour, day, week, or month.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
